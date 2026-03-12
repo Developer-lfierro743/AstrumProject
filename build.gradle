@@ -1,6 +1,6 @@
 allprojects {
     group = 'com.novusforge.astrum'
-    version = '0.1.0-INDEV'
+    version = '0.1.0-PREDEVELOPMENT'
 
     repositories {
         mavenCentral()
