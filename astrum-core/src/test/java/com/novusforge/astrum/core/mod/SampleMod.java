@@ -19,6 +19,7 @@ import com.novusforge.astrum.api.Mod;
 import com.novusforge.astrum.api.ModContext;
 import com.novusforge.astrum.api.ModMetadata;
 import com.novusforge.astrum.api.ecs.Component;
+import com.novusforge.astrum.api.ecs.ECSSystem;
 
 /**
  * A sample mod used to verify the modding API.
@@ -26,6 +27,7 @@ import com.novusforge.astrum.api.ecs.Component;
 public class SampleMod implements Mod {
 
     private final ModMetadata metadata = new ModMetadata("sample_mod", "Sample Mod", "1.0.0");
+    public int systemTickCount = 0;
 
     @Override
     public void onInitialize(ModContext context) {
@@ -35,6 +37,11 @@ public class SampleMod implements Mod {
         // Register a modded block
         short blockId = context.registerBlock("modded_block");
         System.out.println("[SampleMod] Registered Block ID: " + blockId);
+
+        // Register a modded system
+        context.registerSystem(dt -> {
+            systemTickCount++;
+        });
     }
 
     @Override

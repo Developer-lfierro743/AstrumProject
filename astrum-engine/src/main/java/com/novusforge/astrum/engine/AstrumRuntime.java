@@ -59,9 +59,55 @@ public class AstrumRuntime {
                 return true;
             } catch (Exception e) {
                 System.err.println("[Astrum] Bootstrap Failed: " + e.getMessage());
+                running = false;
                 return false;
             }
         }, threadingManager::submitWorldGen);
+    }
+
+    /**
+     * The main engine heartbeat loop.
+     * Implements a fixed-timestep update (The Formula Part 2) for deterministic physics/logic.
+     */
+    public void run() {
+        if (!running) return;
+
+        final double TARGET_UPS = 60.0;
+        final double TIME_STEP = 1.0 / TARGET_UPS;
+        
+        double lastTime = System.nanoTime() / 1_000_000_000.0;
+        double lag = 0.0;
+
+        System.out.println("[Astrum] Engine Heartbeat Started (UPS: " + TARGET_UPS + ")");
+
+        while (running) {
+            double currentTime = System.nanoTime() / 1_000_000_000.0;
+            double elapsed = currentTime - lastTime;
+            lastTime = currentTime;
+            lag += elapsed;
+
+            // 1. Fixed Timestep Updates (Logic/ECS)
+            while (lag >= TIME_STEP) {
+                update((float) TIME_STEP);
+                lag -= TIME_STEP;
+            }
+
+            // 2. Variable Timestep Rendering (Visuals)
+            render((float) (lag / TIME_STEP));
+            
+            // Avoid burning CPU if we are running too fast (optional, but good for Indev)
+            try { Thread.sleep(1); } catch (InterruptedException ignored) {}
+        }
+
+        stop();
+    }
+
+    private void update(float deltaTime) {
+        ecsWorld.tick(deltaTime);
+    }
+
+    private void render(float interpolation) {
+        renderingContext.update();
     }
 
     public void stop() {

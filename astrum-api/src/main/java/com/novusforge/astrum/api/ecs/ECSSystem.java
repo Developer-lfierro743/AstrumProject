@@ -13,33 +13,18 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  */
-package com.novusforge.astrum.api;
-
-import com.novusforge.astrum.api.ecs.Component;
-import com.novusforge.astrum.api.ecs.ECSSystem;
+package com.novusforge.astrum.api.ecs;
 
 /**
- * Provides access to game registration and event hooks.
- * Mods receive this in onInitialize.
+ * Functional interface for ECS logic systems.
+ * Systems process entities and components every heartbeat (The Formula Part 2).
  */
-public interface ModContext {
-
+@FunctionalInterface
+public interface ECSSystem {
+    
     /**
-     * Registers a new block type.
-     * @param name The unique name for the block.
-     * @return The assigned short ID.
+     * Called every fixed-timestep heartbeat.
+     * @param deltaTime The time since the last heartbeat (in seconds).
      */
-    short registerBlock(String name);
-
-    /**
-     * Registers a new ECS component.
-     * @param type The component class.
-     */
-    <T extends Component> void registerComponent(Class<T> type);
-
-    /**
-     * Registers a functional system logic.
-     * @param system The logic to run every heartbeat.
-     */
-    void registerSystem(ECSSystem system);
+    void update(float deltaTime);
 }

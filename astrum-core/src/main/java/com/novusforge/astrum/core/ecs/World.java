@@ -17,6 +17,7 @@
 package com.novusforge.astrum.core.ecs;
 
 import com.novusforge.astrum.api.ecs.Component;
+import com.novusforge.astrum.api.ecs.ECSSystem;
 import java.util.*;
 
 /**
@@ -30,11 +31,31 @@ public class World {
     private final Map<Class<? extends Component>, Integer> componentIds = new HashMap<>();
     private final Map<Integer, Component[]> componentStores = new HashMap<>();
     private final BitSet[] entityMasks = new BitSet[MAX_ENTITIES];
+    private final List<ECSSystem> registeredSystems = new ArrayList<>();
 
     public World() {
         for (int i = 0; i < MAX_ENTITIES; i++) {
             entityMasks[i] = new BitSet();
         }
+    }
+
+    /**
+     * Ticks the world's simulation.
+     * @param deltaTime The time since the last tick (in seconds).
+     */
+    public void tick(float deltaTime) {
+        // Execute all registered systems in order
+        for (ECSSystem system : registeredSystems) {
+            system.update(deltaTime);
+        }
+    }
+
+    /**
+     * Registers a new system logic into the world.
+     * @param system The system to run every tick.
+     */
+    public void registerSystem(ECSSystem system) {
+        registeredSystems.add(system);
     }
 
     public int createEntity() {
@@ -60,10 +81,22 @@ public class World {
 
     public List<Integer> query(BitSet requiredComponents) {
         List<Integer> results = new ArrayList<>();
+        int requiredCount = requiredComponents.cardinality();
+        
         for (int i = 0; i < entityCount; i++) {
-            BitSet mask = (BitSet) entityMasks[i].clone();
-            mask.and(requiredComponents);
-            if (mask.equals(requiredComponents)) {
+            BitSet entityMask = entityMasks[i];
+            
+            // Fast check: bitwise AND without cloning
+            // A contains B if (A & B) == B
+            boolean matches = true;
+            for (int bit = requiredComponents.nextSetBit(0); bit >= 0; bit = requiredComponents.nextSetBit(bit + 1)) {
+                if (!entityMask.get(bit)) {
+                    matches = false;
+                    break;
+                }
+            }
+            
+            if (matches) {
                 results.add(i);
             }
         }

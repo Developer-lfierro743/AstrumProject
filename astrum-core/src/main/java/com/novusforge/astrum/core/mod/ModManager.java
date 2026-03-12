@@ -20,6 +20,7 @@ import com.novusforge.astrum.api.ModContext;
 import com.novusforge.astrum.api.ModMetadata;
 import com.novusforge.astrum.core.ecs.World;
 import com.novusforge.astrum.api.ecs.Component;
+import com.novusforge.astrum.api.ecs.ECSSystem;
 import com.novusforge.astrum.security.guardian.SafetyGuardian;
 import com.novusforge.astrum.security.guardian.AssetScanner;
 import com.novusforge.astrum.security.integrity.IntegrityVerifier;
@@ -104,8 +105,8 @@ public class ModManager implements ModContext {
     }
 
     @Override
-    public void registerSystem(Runnable system) {
-        // Future: Integration with core update loop
-        System.out.println("[ModManager] Registered System logic.");
+    public void registerSystem(ECSSystem system) {
+        ecsWorld.registerSystem(system);
+        System.out.println("[ModManager] Registered System logic into ECS World.");
     }
 }
