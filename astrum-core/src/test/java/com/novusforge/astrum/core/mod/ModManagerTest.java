@@ -37,5 +37,12 @@ public class ModManagerTest {
         SampleMod.ModdedComponent retrieved = world.getComponent(entityId, SampleMod.ModdedComponent.class);
         assertNotNull(retrieved);
         assertEquals("Modded Data", retrieved.data);
+
+        // Verify System registration and execution
+        assertEquals(0, mod.systemTickCount);
+        world.tick(1.0f / 60.0f);
+        assertEquals(1, mod.systemTickCount);
+        world.tick(1.0f / 60.0f);
+        assertEquals(2, mod.systemTickCount);
     }
 }
