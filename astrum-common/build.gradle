@@ -1,3 +1,5 @@
 dependencies {
-    // Shared data structures and protocols
+    api libs.joml
+    testImplementation libs.junit.api
+    testRuntimeOnly libs.junit.engine
 }

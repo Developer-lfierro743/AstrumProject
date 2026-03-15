@@ -1,4 +1,7 @@
 dependencies {
     implementation project(':astrum-core')
     implementation project(':astrum-world')
+    implementation project(':astrum-security')
+    testImplementation libs.junit.api
+    testRuntimeOnly libs.junit.engine
 }

@@ -1,11 +1,13 @@
 plugins {
-    alias(libs.plugins.teavm)
+    id 'org.teavm' version '0.11.0'
 }
 
 dependencies {
-    implementation project(':astrum-core')
+    implementation project(':astrum-client')
 }
 
 teavm {
-    // TeavM configuration for WASM-GC
+    js {
+        mainClass = 'com.novusforge.astrum.web.WebLauncher'
+    }
 }

@@ -1,4 +1,5 @@
 dependencies {
-    implementation project(':astrum-common')
-    // Modding API will depend on core ECS but through abstraction
+    api project(':astrum-common')
+    testImplementation libs.junit.api
+    testRuntimeOnly libs.junit.engine
 }

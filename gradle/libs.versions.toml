@@ -1,19 +1,37 @@
 [versions]
 java = "21"
-gradle = "9.3.1"
 lwjgl = "3.3.4"
-fastNoiseLite = "1.1.0"
-junit = "5.11.0"
-teavm = "0.13.0"
+joml = "1.10.5"
+teavm = "0.11.0"
+junit = "5.10.1"
 
 [libraries]
+# LWJGL
 lwjgl = { group = "org.lwjgl", name = "lwjgl", version.ref = "lwjgl" }
-lwjgl-vulkan = { group = "org.lwjgl", name = "lwjgl-vulkan", version.ref = "lwjgl" }
+lwjgl-assimp = { group = "org.lwjgl", name = "lwjgl-assimp", version.ref = "lwjgl" }
 lwjgl-glfw = { group = "org.lwjgl", name = "lwjgl-glfw", version.ref = "lwjgl" }
+lwjgl-openal = { group = "org.lwjgl", name = "lwjgl-openal", version.ref = "lwjgl" }
+lwjgl-opengl = { group = "org.lwjgl", name = "lwjgl-opengl", version.ref = "lwjgl" }
 lwjgl-stb = { group = "org.lwjgl", name = "lwjgl-stb", version.ref = "lwjgl" }
-fastnoise-lite = { group = "io.github.auburn", name = "fastnoiselite", version.ref = "fastNoiseLite" }
-junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
+lwjgl-vulkan = { group = "org.lwjgl", name = "lwjgl-vulkan", version.ref = "lwjgl" }
+
+# Math & Utils
+joml = { group = "org.joml", name = "joml", version.ref = "joml" }
+
+# Testing
+junit-api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junit" }
+junit-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junit" }
+
+[bundles]
+lwjgl = [
+    "lwjgl",
+    "lwjgl-assimp",
+    "lwjgl-glfw",
+    "lwjgl-openal",
+    "lwjgl-opengl",
+    "lwjgl-stb",
+    "lwjgl-vulkan"
+]
 
 [plugins]
-java-library = { id = "java-library" }
 teavm = { id = "org.teavm", version.ref = "teavm" }

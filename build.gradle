@@ -1,9 +1,11 @@
-allprojects {
-    group = 'com.novusforge.astrum'
-    version = '0.0.1-PREDEVELOPMENT'
+plugins {
+    id 'java-library'
+}
 
+allprojects {
     repositories {
         mavenCentral()
+        maven { url 'https://jitpack.io' }
     }
 }
 
@@ -12,23 +14,22 @@ subprojects {
 
     java {
         toolchain {
-            languageVersion = JavaLanguageVersion.of(libs.versions.java.get())
+            languageVersion = JavaLanguageVersion.of(21)
         }
     }
 
-    dependencies {
-        testImplementation libs.junit.jupiter
-        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    test {
+        useJUnitPlatform()
     }
 
     tasks.withType(JavaCompile).configureEach {
         options.encoding = 'UTF-8'
         options.release.set(21)
-        options.compilerArgs << "--enable-preview" << "-Xlint:unchecked" << "-Xlint:preview"
+        // Enable preview features for Panama API and Virtual Threads if needed
+        options.compilerArgs += ['--enable-preview']
     }
 
-    test {
-        useJUnitPlatform()
-        jvmArgs += "--enable-preview"
+    tasks.withType(JavaExec).configureEach {
+        jvmArgs += ['--enable-preview']
     }
 }
