@@ -38,8 +38,8 @@ public class NativeMemoryTest {
         MemorySegment leakCheck;
         try (NativeMemory memory = new NativeMemory()) {
             leakCheck = memory.allocate(64);
-            assertTrue(leakCheck.isAlive(), "Memory should be alive within the try-with-resources block.");
+            assertTrue(leakCheck.scope().isAlive(), "Memory should be alive within the try-with-resources block.");
         }
-        assertFalse(leakCheck.isAlive(), "Memory should be closed/deallocated after the block.");
+        assertFalse(leakCheck.scope().isAlive(), "Memory should be closed/deallocated after the block.");
     }
 }
