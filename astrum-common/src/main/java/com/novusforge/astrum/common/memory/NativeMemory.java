@@ -9,8 +9,10 @@ import java.lang.foreign.ValueLayout;
  * Designed for zero-copy interop with Vulkan and native libraries.
  */
 public class NativeMemory implements AutoCloseable {
+    @SuppressWarnings("preview")
     private final Arena arena;
 
+    @SuppressWarnings("preview")
     public NativeMemory() {
         // Use a confined arena for thread-safe, deterministic deallocation
         this.arena = Arena.ofConfined();
@@ -19,6 +21,7 @@ public class NativeMemory implements AutoCloseable {
     /**
      * Allocates a block of off-heap memory.
      */
+    @SuppressWarnings("preview")
     public MemorySegment allocate(long bytes) {
         return arena.allocate(bytes);
     }
@@ -26,7 +29,9 @@ public class NativeMemory implements AutoCloseable {
     /**
      * Allocates an array of integers off-heap.
      */
+    @SuppressWarnings("preview")
     public MemorySegment allocateInts(int[] data) {
+        @SuppressWarnings("preview")
         MemorySegment segment = arena.allocate(data.length * ValueLayout.JAVA_INT.byteSize(), ValueLayout.JAVA_INT.byteAlignment());
         segment.copyFrom(MemorySegment.ofArray(data));
         return segment;
@@ -35,7 +40,8 @@ public class NativeMemory implements AutoCloseable {
     /**
      * Allocates a block of memory for a specific value layout.
      */
-    public MemorySegment allocate(ValueLayout layout) {
+    @SuppressWarnings("preview")
+    public MemorySegment allocate(@SuppressWarnings("preview") ValueLayout layout) {
         return arena.allocate(layout);
     }
 

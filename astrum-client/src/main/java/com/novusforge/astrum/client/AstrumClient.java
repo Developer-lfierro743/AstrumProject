@@ -9,8 +9,10 @@ import com.novusforge.astrum.security.guardian.SafetyGuardian;
  * Main entry point for the Astrum game client.
  */
 public class AstrumClient {
+    @SuppressWarnings("unused")
     private final World world;
     private final RenderBackend engine;
+    @SuppressWarnings("unused")
     private final SafetyGuardian guardian;
 
     public AstrumClient() {
