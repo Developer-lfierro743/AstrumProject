@@ -2,7 +2,7 @@ package com.novusforge.astrum.client;
 
 import com.novusforge.astrum.core.world.World;
 import com.novusforge.astrum.engine.RenderBackend;
-import com.novusforge.astrum.engine.vulkan.VulkanContext;
+import com.novusforge.astrum.engine.EngineFactory;
 import com.novusforge.astrum.security.guardian.SafetyGuardian;
 
 /**
@@ -15,7 +15,7 @@ public class AstrumClient {
 
     public AstrumClient() {
         this.world = new World();
-        this.engine = new VulkanContext();
+        this.engine = EngineFactory.createBackend();
         this.guardian = new SafetyGuardian();
     }
 
