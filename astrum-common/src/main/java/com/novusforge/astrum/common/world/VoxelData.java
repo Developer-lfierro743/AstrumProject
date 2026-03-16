@@ -16,15 +16,11 @@ public class VoxelData {
     }
 
     public void setBlock(int x, int y, int z, byte blockId) {
-        blocks[getIndex(x, y, z)] = blockId;
+        blocks[ChunkMath.getIndex(x, y, z)] = blockId;
     }
 
     public byte getBlock(int x, int y, int z) {
-        return blocks[getIndex(x, y, z)];
-    }
-
-    private int getIndex(int x, int y, int z) {
-        return (x * CHUNK_SIZE + y) * CHUNK_SIZE + z;
+        return blocks[ChunkMath.getIndex(x, y, z)];
     }
 
     public byte[] getRawData() {
