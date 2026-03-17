@@ -11,7 +11,35 @@ public interface Mod {
     void onInitialize();
     
     /**
-     * Gets the metadata of the mod.
+     * Gets the unique mod identifier.
      */
     String getModId();
+    
+    /**
+     * Gets the display name of the mod.
+     */
+    default String getName() {
+        return getModId();
+    }
+    
+    /**
+     * Gets the mod description.
+     */
+    default String getDescription() {
+        return "";
+    }
+    
+    /**
+     * Gets the mod version.
+     */
+    default String getVersion() {
+        return "1.0.0";
+    }
+    
+    /**
+     * Gets the author of the mod.
+     */
+    default String getAuthor() {
+        return "Unknown";
+    }
 }

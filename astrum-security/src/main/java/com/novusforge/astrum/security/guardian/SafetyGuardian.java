@@ -1,8 +1,10 @@
 package com.novusforge.astrum.security.guardian;
 
 import com.novusforge.astrum.api.Mod;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * The SafetyGuardian: A hardcoded, multi-layered security system.
@@ -11,10 +13,13 @@ import java.util.List;
  */
 public class SafetyGuardian {
     private final List<SafetyRule> rules = new ArrayList<>();
-
+    private final AssetScanner assetScanner = new AssetScanner();
+    private static final Set<String> BLOCKED_MODLOADERS = Set.of(
+        "forge", "neoforge", "fabric", "quilt", "liteloader", "risugami", "modloader"
+    );
+    
     public SafetyGuardian() {
-        // Initialize hardcoded rules
-        // For example: rules.add(new SexualRule());
+        rules.add(new SexualRule());
     }
 
     /**
@@ -23,7 +28,6 @@ public class SafetyGuardian {
     public boolean verifyMod(Mod mod) {
         System.out.println("SafetyGuardian verifying mod: " + mod.getModId());
         
-        // Rule-based mod verification
         for (SafetyRule rule : rules) {
             if (!rule.check(mod)) {
                 System.err.println("SafetyGuardian BLOCKED mod " + mod.getModId() + " due to rule violation.");
@@ -31,12 +35,51 @@ public class SafetyGuardian {
             }
         }
         
-        // Prevent loading from other modloaders as per "The Formula"
-        // (forge, neoforge, fabric, etc. are blocked)
+        if (isBlockedModloader(mod)) {
+            System.err.println("SafetyGuardian BLOCKED mod from incompatible modloader: " + mod.getModId());
+            return false;
+        }
+        
         return true;
+    }
+    
+    private boolean isBlockedModloader(Mod mod) {
+        String modId = mod.getModId().toLowerCase();
+        for (String blocked : BLOCKED_MODLOADERS) {
+            if (modId.contains(blocked)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Scans mod assets for prohibited content.
+     */
+    public boolean scanAssets(Path modPath) {
+        System.out.println("SafetyGuardian scanning assets: " + modPath);
+        boolean result = assetScanner.scanModAssets(modPath);
+        
+        if (!result) {
+            System.err.println("SafetyGuardian: Asset scan found violations!");
+        }
+        
+        return result;
     }
 
     public void scanAssets(Object asset) {
-        // Hardcoded asset scanning logic for prohibited content
+        for (SafetyRule rule : rules) {
+            if (!rule.checkAsset(asset)) {
+                System.err.println("SafetyGuardian BLOCKED asset due to rule violation.");
+            }
+        }
+    }
+    
+    public AssetScanner getAssetScanner() {
+        return assetScanner;
+    }
+    
+    public void addRule(SafetyRule rule) {
+        rules.add(rule);
     }
 }
