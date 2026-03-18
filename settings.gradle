@@ -1,26 +1,4 @@
-pluginManagement {
-    repositories {
-        mavenCentral()
-        gradlePluginPortal()
-        maven { url "https://teavm.org/maven/repository/" }
-        google()
-    }
-    plugins {
-        id 'com.android.application' version '9.1.0' apply false
-        id 'com.android.library' version '9.1.0' apply false
-    }
-}
-
 rootProject.name = 'ProjectAstrum'
-
-include 'astrum-api'
-include 'astrum-common'
 include 'astrum-core'
 include 'astrum-engine'
-include 'astrum-world'
-include 'astrum-client'
-include 'astrum-server'
-include 'astrum-web'
-include 'astrum-security'
-include 'astrum-infiniminer'
-include 'astrum-android'
+include 'astrum-game'

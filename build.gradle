@@ -1,12 +1,9 @@
 plugins {
     id 'java-library'
-    id("com.android.application") version "9.1.0" apply false
-    id("com.android.library") version "8.3.0" apply false
 }
 
 allprojects {
     repositories {
-        google()
         mavenCentral()
         maven { url 'https://jitpack.io' }
     }
@@ -17,21 +14,33 @@ subprojects {
 
     java {
         toolchain {
-            languageVersion = JavaLanguageVersion.of(21)
+            languageVersion = JavaLanguageVersion.of(22)
         }
-    }
-
-    test {
-        useJUnitPlatform()
     }
 
     tasks.withType(JavaCompile).configureEach {
         options.encoding = 'UTF-8'
-        options.release.set(21)
-        options.compilerArgs += ['--enable-preview']
+        options.compilerArgs += [
+            '--enable-preview',
+            '--enable-native-access',
+            'ALL-UNNAMED'
+        ]
     }
 
     tasks.withType(JavaExec).configureEach {
-        jvmArgs += ['--enable-preview']
+        jvmArgs += [
+            '--enable-preview',
+            '--enable-native-access',
+            'ALL-UNNAMED'
+        ]
+    }
+
+    dependencies {
+        testImplementation libs.junit.api
+        testRuntimeOnly libs.junit.engine
+    }
+
+    test {
+        useJUnitPlatform()
     }
 }

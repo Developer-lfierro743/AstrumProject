@@ -1,5 +1,0 @@
-dependencies {
-    api project(':astrum-common')
-    testImplementation libs.junit.api
-    testRuntimeOnly libs.junit.engine
-}
