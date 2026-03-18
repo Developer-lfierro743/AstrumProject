@@ -1,8 +1,8 @@
-package astrum.game;
+package com.novusforge.astrum.game;
 
-import astrum.core.ECS;
-import astrum.core.SafetyGuardian;
-import astrum.engine.VulkanRenderer;
+import com.novusforge.astrum.core.ECS;
+import com.novusforge.astrum.core.SafetyGuardian;
+import com.novusforge.astrum.engine.VulkanRenderer;
 import static org.lwjgl.glfw.GLFW.*;
 
 /**
@@ -11,7 +11,7 @@ import static org.lwjgl.glfw.GLFW.*;
  */
 public class Main {
     public static void main(String[] args) {
-        System.out.println("Starting Project Astrum (Java 22 + Vulkan)...");
+        System.out.println("Starting Project Astrum by Novusforge (Java 22 + Vulkan)...");
 
         // 1. Initialize SafetyGuardian
         SafetyGuardian guardian = new SafetyGuardian();
@@ -32,7 +32,6 @@ public class Main {
             while (!renderer.windowShouldClose()) {
                 glfwPollEvents();
                 // Render logic here
-                // For now, break immediately to avoid an empty window hang in tests
                 break; 
             }
         } finally {

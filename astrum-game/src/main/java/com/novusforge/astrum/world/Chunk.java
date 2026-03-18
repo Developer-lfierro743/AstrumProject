@@ -1,4 +1,4 @@
-package astrum.world;
+package com.novusforge.astrum.world;
 
 /**
  * High-performance Voxel Chunk using 1D arrays for cache locality.
@@ -26,7 +26,6 @@ public class Chunk {
     }
 
     private int getIndex(int x, int y, int z) {
-        // x + SIZE * (y + SIZE * z) or similar 1D indexing
         return x | (y << 5) | (z << 10); // 5 bits for 32 size
     }
 
@@ -36,5 +35,11 @@ public class Chunk {
 
     public short[] getBlocks() {
         return blocks;
+    }
+
+    public void dispose() {
+        for (int i = 0; i < blocks.length; i++) {
+            blocks[i] = 0;
+        }
     }
 }

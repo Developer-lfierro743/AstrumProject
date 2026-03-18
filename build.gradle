@@ -14,24 +14,21 @@ subprojects {
 
     java {
         toolchain {
-            languageVersion = JavaLanguageVersion.of(22)
+            languageVersion = JavaLanguageVersion.of(21)
         }
     }
 
     tasks.withType(JavaCompile).configureEach {
         options.encoding = 'UTF-8'
         options.compilerArgs += [
-            '--enable-preview',
-            '--enable-native-access',
-            'ALL-UNNAMED'
+            '--enable-preview'
         ]
     }
 
     tasks.withType(JavaExec).configureEach {
         jvmArgs += [
             '--enable-preview',
-            '--enable-native-access',
-            'ALL-UNNAMED'
+            '--enable-native-access=ALL-UNNAMED'
         ]
     }
 

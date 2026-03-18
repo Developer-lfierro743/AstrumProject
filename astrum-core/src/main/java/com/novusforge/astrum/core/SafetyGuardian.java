@@ -1,4 +1,4 @@
-package astrum.core;
+package com.novusforge.astrum.core;
 
 import java.util.ArrayList;
 import java.util.List;
