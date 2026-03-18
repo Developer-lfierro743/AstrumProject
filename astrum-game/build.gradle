@@ -1,3 +1,28 @@
+plugins {
+    id 'application'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+}
+
 dependencies {
-    implementation project(':astrum-engine')
+    implementation(project(':astrum-engine')) {
+        exclude group: 'org.lwjgl', module: 'lwjgl-vulkan'
+    }
+    compileOnly 'org.lwjgl:lwjgl-vulkan:3.4.1'
+    runtimeOnly 'org.lwjgl:lwjgl:3.4.1:natives-linux-arm64'
+    runtimeOnly 'org.lwjgl:lwjgl-glfw:3.4.1:natives-linux-arm64'
+    runtimeOnly 'org.lwjgl:lwjgl-stb:3.4.1:natives-linux-arm64'
+}
+
+application {
+    mainClass = 'com.novusforge.astrum.game.Main'
 }

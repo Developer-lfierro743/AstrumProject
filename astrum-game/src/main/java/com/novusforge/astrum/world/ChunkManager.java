@@ -51,30 +51,26 @@ public class ChunkManager {
 
     public void tick() {
         int px = playerChunkX;
-        int py = playerChunkY;
         int pz = playerChunkZ;
 
         for (int dx = -RENDER_DISTANCE; dx <= RENDER_DISTANCE; dx++) {
-            for (int dy = -2; dy <= 2; dy++) {
-                for (int dz = -RENDER_DISTANCE; dz <= RENDER_DISTANCE; dz++) {
-                    int cx = px + dx;
-                    int cy = py + dy;
-                    int cz = pz + dz;
-                    long key = getChunkKey(cx, cy, cz);
-                    int distSq = dx * dx + dy * dy + dz * dz;
+            for (int dz = -RENDER_DISTANCE; dz <= RENDER_DISTANCE; dz++) {
+                int cx = px + dx;
+                int cz = pz + dz;
+                long key = getChunkKey(cx, 0, cz);
+                int distSq = dx * dx + dz * dz;
 
-                    if (distSq <= RENDER_DISTANCE * RENDER_DISTANCE) {
-                        if (!chunks.containsKey(key)) {
-                            queueWorldGen(cx, cy, cz);
-                        } else if (!meshes.containsKey(key)) {
-                            queueMeshGen(cx, cy, cz);
-                        }
+                if (distSq <= RENDER_DISTANCE * RENDER_DISTANCE) {
+                    if (!chunks.containsKey(key)) {
+                        queueWorldGen(cx, 0, cz);
+                    } else if (!meshes.containsKey(key)) {
+                        queueMeshGen(cx, 0, cz);
                     }
                 }
             }
         }
 
-        unloadFarChunks(px, py, pz);
+        unloadFarChunks(px, pz);
     }
 
     private void queueWorldGen(int cx, int cy, int cz) {
@@ -145,14 +141,13 @@ public class ChunkManager {
         return chunk;
     }
 
-    private void unloadFarChunks(int px, int py, int pz) {
+    private void unloadFarChunks(int px, int pz) {
         long[] keys = chunks.keySet().stream().mapToLong(Long::longValue).toArray();
         for (long key : keys) {
             int[] coords = getChunkCoords(key);
             int dx = coords[0] - px;
-            int dy = coords[1] - py;
             int dz = coords[2] - pz;
-            int distSq = dx * dx + dy * dy + dz * dz;
+            int distSq = dx * dx + dz * dz;
 
             if (distSq > UNLOAD_DISTANCE * UNLOAD_DISTANCE) {
                 Chunk removed = chunks.remove(key);
@@ -174,25 +169,24 @@ public class ChunkManager {
 
     public short getBlock(int worldX, int worldY, int worldZ) {
         int cx = Math.floorDiv(worldX, Chunk.SIZE);
-        int cy = Math.floorDiv(worldY, Chunk.SIZE);
         int cz = Math.floorDiv(worldZ, Chunk.SIZE);
         int lx = Math.floorMod(worldX, Chunk.SIZE);
         int ly = Math.floorMod(worldY, Chunk.SIZE);
         int lz = Math.floorMod(worldZ, Chunk.SIZE);
 
-        Chunk chunk = chunks.get(getChunkKey(cx, cy, cz));
+        Chunk chunk = chunks.get(getChunkKey(cx, 0, cz));
         if (chunk == null) return 0;
         return chunk.getBlock(lx, ly, lz);
     }
 
-    public Chunk getChunk(int cx, int cy, int cz) {
-        return chunks.get(getChunkKey(cx, cy, cz));
+    public Chunk getChunk(int cx, int cz) {
+        return chunks.get(getChunkKey(cx, 0, cz));
     }
 
-    public ChunkMesh getMesh(int cx, int cy, int cz) {
+    public ChunkMesh getMesh(int cx, int cz) {
         meshLock.readLock().lock();
         try {
-            return meshes.get(getChunkKey(cx, cy, cz));
+            return meshes.get(getChunkKey(cx, 0, cz));
         } finally {
             meshLock.readLock().unlock();
         }
@@ -205,11 +199,10 @@ public class ChunkManager {
             for (Map.Entry<Long, ChunkMesh> entry : meshes.entrySet()) {
                 int[] coords = getChunkCoords(entry.getKey());
                 int dx = coords[0] - px;
-                int dy = coords[1] - py;
                 int dz = coords[2] - pz;
-                if (dx * dx + dy * dy + dz * dz > RENDER_DISTANCE * RENDER_DISTANCE) continue;
+                if (dx * dx + dz * dz > RENDER_DISTANCE * RENDER_DISTANCE) continue;
 
-                if (FrustumCuller.isChunkVisible(coords[0], coords[1], coords[2], frustumPlanes)) {
+                if (FrustumCuller.isChunkVisible(coords[0], 0, coords[2], frustumPlanes)) {
                     visible.put(entry.getKey(), entry.getValue());
                 }
             }
@@ -219,8 +212,12 @@ public class ChunkManager {
         return visible;
     }
 
-    public boolean isChunkReady(int cx, int cy, int cz) {
-        return meshes.containsKey(getChunkKey(cx, cy, cz));
+    public boolean isChunkReady(int cx, int cz) {
+        return meshes.containsKey(getChunkKey(cx, 0, cz));
+    }
+
+    public void regenerateMesh(int cx, int cy, int cz) {
+        queueMeshGen(cx, cy, cz);
     }
 
     public int getPendingWorldGen() { return pendingWorldGen.get(); }

@@ -1,6 +1,6 @@
 [versions]
 java = "21"
-lwjgl = "3.3.4"
+lwjgl = "3.4.1"
 joml = "1.10.7"
 junit = "5.10.2"
 
