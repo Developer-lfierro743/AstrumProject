@@ -64,3 +64,4 @@ Using its newer technologies including webgpu and maybe I will take time to rewr
 which in the same technology I know what I'm talking about.
 my goal with this its Optimized  to i3-5005U with a integrated Graphics(IGPU Intel(R) HD Graphics 5500) to Threadripper with RTX cards  and that works with Teavm(WASM-GC)
 and school chromebooks uses Celeron cpus which are budget friendly for schools,etc.
+and they use bad igpus(Intel® UHD Graphics) in celerons

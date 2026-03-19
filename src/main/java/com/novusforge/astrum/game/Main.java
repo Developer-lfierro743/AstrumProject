@@ -21,7 +21,8 @@ public class Main {
         System.out.println();
 
         SafetyGuardian guardian = new SafetyGuardian();
-        if (!guardian.validateAction("startup")) {
+        SafetyGuardian.ActionContext startupContext = new SafetyGuardian.ActionContext("startup", "system", "engine");
+        if (guardian.validate(startupContext) == SafetyGuardian.SafetyResult.BLOCK) {
             System.err.println("SafetyGuardian blocked startup.");
             return;
         }
