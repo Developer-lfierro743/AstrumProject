@@ -37,7 +37,7 @@ public class Main {
         
         try {
             renderer.init();
-            game = new Game(renderer.getWindow());
+            game = new Game(renderer.getWindow(), ecs, guardian);
             game.init();
             
             // Set up buffer deletion callback

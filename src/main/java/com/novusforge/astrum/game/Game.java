@@ -1,5 +1,6 @@
 package com.novusforge.astrum.game;
 
+import com.novusforge.astrum.core.*;
 import com.novusforge.astrum.engine.*;
 import com.novusforge.astrum.world.*;
 import org.joml.Matrix4f;
@@ -13,25 +14,37 @@ public class Game {
     private InputManager input;
     private World world;
     private ChunkManager chunkManager;
+    private ECS ecs;
+    private SafetyGuardian guardian;
     
+    private int playerEntity;
     private long window;
     private boolean running = true;
     
     private int lastLeftClickState = 0;
     private int lastRightClickState = 0;
     
-    public Game(long window) {
+    public Game(long window, ECS ecs, SafetyGuardian guardian) {
         this.window = window;
+        this.ecs = ecs;
+        this.guardian = guardian;
     }
     
     public void init() {
         input = new InputManager(window);
         player = new Player(0, 20, 0);
+        
+        // Create player entity in ECS as per Formula Part 1
+        playerEntity = ecs.createEntity();
+        ecs.addComponent(playerEntity, new Components.Position(player.getPosition()));
+        ecs.addComponent(playerEntity, new Components.Velocity(new Vector3f()));
+        ecs.addComponent(playerEntity, new Components.PlayerTag());
+        
         world = new World();
         chunkManager = world.getChunkManager();
         
         System.out.println("[Game] World initialized with seed: " + world.getSeed());
-        System.out.println("[Game] Spawn point: (0, 20, 0)");
+        System.out.println("[Game] Spawn point: (0, 20, 0) | Entity ID: " + playerEntity);
     }
     
     public void update(float deltaTime) {
@@ -46,6 +59,10 @@ public class Game {
         Vector3f pos = player.getPosition();
         world.updatePlayerPosition(pos.x, pos.y, pos.z);
         
+        // Update ECS Position from Player object for now
+        // In the future, movement logic will live in ECS Systems
+        ecs.getComponent(playerEntity, Components.Position.class).value().set(pos);
+        
         player.update(deltaTime, input, (x, y, z) -> world.getBlock(x, y, z));
         
         int playerChunkX = (int) Math.floor(pos.x / Chunk.SIZE);
@@ -54,13 +71,21 @@ public class Game {
         
         int leftClick = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1);
         if (leftClick == GLFW_PRESS && lastLeftClickState == GLFW_RELEASE) {
-            breakBlock();
+            // Validate action through SafetyGuardian
+            SafetyGuardian.ActionContext breakCtx = new SafetyGuardian.ActionContext("break_block", "player", "world");
+            if (guardian.validate(breakCtx) != SafetyGuardian.SafetyResult.BLOCK) {
+                breakBlock();
+            }
         }
         lastLeftClickState = leftClick;
         
         int rightClick = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2);
         if (rightClick == GLFW_PRESS && lastRightClickState == GLFW_RELEASE) {
-            placeBlock();
+            // Validate action through SafetyGuardian
+            SafetyGuardian.ActionContext placeCtx = new SafetyGuardian.ActionContext("place_block", "player", "world");
+            if (guardian.validate(placeCtx) != SafetyGuardian.SafetyResult.BLOCK) {
+                placeBlock();
+            }
         }
         lastRightClickState = rightClick;
     }
