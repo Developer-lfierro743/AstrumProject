@@ -18,7 +18,7 @@ public final class AstrumConstants {
      * - Skip IIV Questionnaire (auto-pass verification)
      * - Enable debug logging
      */
-    public static final boolean DEVELOPER_MODE = true;
+    public static final boolean DEVELOPER_MODE = false;
     
     /**
      * SKIP_ACCOUNT_SYSTEM: Bypass login/register GUI
