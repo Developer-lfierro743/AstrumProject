@@ -1,7 +1,7 @@
 Part 1:
 This more ambitious in Minecraft alone notch idea(2009 cave game) he had vision for Minecraft but this more ambitious then the current Minecraft!!! And dethrone Hytale(hypixel studios and they are independent) as well! and possibly kill the model GaaS
 Name:(i am not spoiling the real name of the project yet/game name yet)
-Tech stack: Java 21 or higher
+Tech stack: kotlin
 Framework: RAW LWJGL3 with ECS (Entity Conponent System) and Monolith structure(coming soon ECS structure and better orginzation)
 Minecraft uses spaghetti code OOP(oritented-object-programing)
 Graphics: Vulkan

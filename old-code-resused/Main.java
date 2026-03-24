@@ -50,6 +50,10 @@ public class Main {
         if (AstrumConstants.DEVELOPER_MODE) {
             AstrumConstants.printDevWarning();
         }
+        
+        // Print experimental features status
+        AstrumConstants.printExperimentalStatus();
+        System.out.println();
 
         // Step 1: Account System Check or Launch
         checkAccountSession();
@@ -71,7 +75,7 @@ public class Main {
         System.out.println();
 
         // Step 4: Launch Game
-        IRenderer renderer = new VulkanRenderer();
+        IRenderer renderer = new OpenGLRenderer();  // Use OpenGL (simpler!)
         Game game = null;
         
         try {

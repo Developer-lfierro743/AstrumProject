@@ -54,12 +54,16 @@ public class VulkanRenderer implements IRenderer {
     private long uniformBufferMemory;
     private long[] commandBuffers;
 
-    // Frame synchronization (2 frames in flight)
+    // Frame synchronization (2 frames = front buffer + back buffer)
     private static final int MAX_FRAMES_IN_FLIGHT = 2;
     private int currentFrame = 0;
+    private int currentImageIndex = 0;
     private long[] imageAvailableSemaphores;
     private long[] renderFinishedSemaphores;
     private long[] inFlightFences;
+    
+    // Per-frame command buffers (for double buffering)
+    private long[][] frameCommandBuffers;
 
     // Test cube
     private long testCubeVbo = 0;
@@ -73,6 +77,21 @@ public class VulkanRenderer implements IRenderer {
 
     @Override
     public boolean init() {
+        // Explicitly load Vulkan library before GLFW initializes
+        try {
+            System.loadLibrary("vulkan");
+            System.out.println("[Vulkan] Vulkan library loaded explicitly");
+        } catch (UnsatisfiedLinkError e) {
+            // Try loading from standard path
+            try {
+                System.load("/usr/lib/aarch64-linux-gnu/libvulkan.so.1");
+                System.out.println("[Vulkan] Vulkan library loaded from /usr/lib/aarch64-linux-gnu");
+            } catch (UnsatisfiedLinkError e2) {
+                System.out.println("[Vulkan] Warning: Could not explicitly load Vulkan library");
+                System.out.println("[Vulkan] Will rely on GLFW to load it");
+            }
+        }
+        
         initWindow();
         initVulkan();
         initSwapChain();
@@ -710,8 +729,13 @@ public class VulkanRenderer implements IRenderer {
 
     private void initCommandBuffers() {
         commandBuffers = new long[swapChainFramebuffers.length];
-
+        
+        // Create per-frame command buffers for double buffering
+        // Each frame has command buffers for all swapchain images
+        frameCommandBuffers = new long[MAX_FRAMES_IN_FLIGHT][swapChainFramebuffers.length];
+        
         try (MemoryStack stack = stackPush()) {
+            // Allocate command buffers for each swapchain image
             VkCommandBufferAllocateInfo allocInfo = VkCommandBufferAllocateInfo.calloc(stack)
                     .sType(VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO)
                     .commandPool(commandPool)
@@ -723,8 +747,17 @@ public class VulkanRenderer implements IRenderer {
             for (int i = 0; i < commandBuffers.length; i++) {
                 commandBuffers[i] = buf.get(i);
             }
+            
+            // Allocate per-frame command buffers
+            for (int frame = 0; frame < MAX_FRAMES_IN_FLIGHT; frame++) {
+                vkAllocateCommandBuffers(device, allocInfo, buf);
+                for (int i = 0; i < commandBuffers.length; i++) {
+                    frameCommandBuffers[frame][i] = buf.get(i);
+                }
+            }
         }
-        System.out.println("[Vulkan] Command buffers created.");
+        System.out.println("[Vulkan] Command buffers created: " + MAX_FRAMES_IN_FLIGHT + " frames × " + 
+                          swapChainFramebuffers.length + " images (double buffering)");
     }
 
     private void initSyncObjects() {
@@ -840,9 +873,27 @@ public class VulkanRenderer implements IRenderer {
     @Override
     public void render(Matrix4f view, Matrix4f projection, Map<Long, ChunkMesh> meshes) {
         try (MemoryStack stack = stackPush()) {
-            // Wait for fence
+            // Wait for previous frame (GPU → CPU sync)
             vkWaitForFences(device, inFlightFences[currentFrame], true, Long.MAX_VALUE);
+            
+            // Acquire next image from swapchain (front buffer → back buffer)
+            IntBuffer imageIndexBuf = stack.mallocInt(1);
+            int result = vkAcquireNextImageKHR(device, swapChain, Long.MAX_VALUE,
+                imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, imageIndexBuf);
+            
+            currentImageIndex = imageIndexBuf.get(0);
+
+            if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+                return;
+            } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+                throw new RuntimeException("Failed to acquire swap chain image");
+            }
+            
+            // Reset fence for this frame
             vkResetFences(device, inFlightFences[currentFrame]);
+
+            // Get command buffer for THIS FRAME and THIS IMAGE
+            VkCommandBuffer vkCmd = new VkCommandBuffer(frameCommandBuffers[currentFrame][currentImageIndex], device);
 
             // Update uniform buffer
             PointerBuffer data = stack.mallocPointer(1);
@@ -853,20 +904,6 @@ public class VulkanRenderer implements IRenderer {
             new Matrix4f().get(128, buffer);
             vkUnmapMemory(device, uniformBufferMemory);
 
-            // Acquire image
-            IntBuffer imageIndexBuf = stack.mallocInt(1);
-            int result = vkAcquireNextImageKHR(device, swapChain, Long.MAX_VALUE,
-                imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, imageIndexBuf);
-
-            if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-                return;
-            } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-                throw new RuntimeException("Failed to acquire swap chain image");
-            }
-
-            int imageIndex = imageIndexBuf.get(0);
-            VkCommandBuffer vkCmd = new VkCommandBuffer(commandBuffers[imageIndex], device);
-
             // Reset and begin command buffer
             vkResetCommandBuffer(vkCmd, 0);
             VkCommandBufferBeginInfo beginInfo = VkCommandBufferBeginInfo.calloc(stack)
@@ -875,12 +912,13 @@ public class VulkanRenderer implements IRenderer {
 
             // Begin render pass
             VkClearValue.Buffer clearColor = VkClearValue.calloc(1, stack);
-            clearColor.color().float32(stack.floats(0.4f, 0.6f, 1.0f, 1.0f));
+            // TEST COLOR: Bright magenta (very visible - proves front buffer is working!)
+            clearColor.color().float32(stack.floats(1.0f, 0.0f, 1.0f, 1.0f));  // MAGENTA
 
             VkRenderPassBeginInfo renderPassInfo = VkRenderPassBeginInfo.calloc(stack)
                     .sType(VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO)
                     .renderPass(renderPass)
-                    .framebuffer(swapChainFramebuffers[imageIndex])
+                    .framebuffer(swapChainFramebuffers[currentImageIndex])
                     .renderArea(VkRect2D.calloc(stack)
                         .offset(VkOffset2D.calloc(stack).set(0, 0))
                         .extent(VkExtent2D.calloc(stack).set(swapChainWidth, swapChainHeight)))
@@ -932,7 +970,7 @@ public class VulkanRenderer implements IRenderer {
             vkCmdEndRenderPass(vkCmd);
             vkEndCommandBuffer(vkCmd);
 
-            // Submit
+            // Submit command buffer (CPU → GPU sync)
             IntBuffer waitStages = stack.mallocInt(1);
             waitStages.put(0, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
 
@@ -953,12 +991,12 @@ public class VulkanRenderer implements IRenderer {
                 throw new RuntimeException("Failed to submit command buffer");
             }
 
-            // Present
+            // Present to screen (back buffer → front buffer swap)
             LongBuffer presentWaitSemaphores = stack.mallocLong(1);
             presentWaitSemaphores.put(0, renderFinishedSemaphores[currentFrame]);
 
             IntBuffer imageIndexToPresent = stack.mallocInt(1);
-            imageIndexToPresent.put(0, imageIndex);
+            imageIndexToPresent.put(0, currentImageIndex);
 
             VkPresentInfoKHR presentInfo = VkPresentInfoKHR.calloc(stack)
                     .sType(VK_STRUCTURE_TYPE_PRESENT_INFO_KHR)
@@ -974,6 +1012,7 @@ public class VulkanRenderer implements IRenderer {
                 throw new RuntimeException("Failed to present swap chain image");
             }
 
+            // Move to next frame (toggle front/back buffer)
             currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
         }
     }
